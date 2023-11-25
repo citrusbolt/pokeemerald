@@ -3925,7 +3925,7 @@ static u8 LoadMonGfxAndSprite(struct Pokemon *mon, s16 *state)
         return 0xFF;
     case 1:
         pal = GetMonSpritePalStructFromOtIdPersonality(summary->species2, summary->OTID, summary->pid);
-        LoadCompressedSpritePalette(pal);
+        LoadCompressedUniqueSpritePalette(pal, &sMonSummaryScreen->currentMon.box);
         SetMultiuseSpriteTemplateToPokemon(pal->tag, B_POSITION_OPPONENT_LEFT);
         (*state)++;
         return 0xFF;

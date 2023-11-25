@@ -2,6 +2,7 @@
 #include "sprite.h"
 #include "main.h"
 #include "palette.h"
+#include "util.h"
 
 #define MAX_SPRITE_COPY_REQUESTS 64
 
@@ -1754,4 +1755,22 @@ bool8 AddSubspritesToOamBuffer(struct Sprite *sprite, struct OamData *destOam, u
     }
 
     return 0;
+}
+
+u8 LoadUniqueSpritePalette(const struct SpritePalette *palette, struct BoxPokemon *boxMon)
+{
+    u8 index = IndexOfSpritePaletteTag(0xFFFF);
+
+    if (index == 0xFF)
+    {
+        return 0xFF;
+    }
+    else
+    {
+        sSpritePaletteTags[index] = palette->tag;
+        DoLoadSpritePalette(palette->data, PLTT_ID(index));
+        UniquePalette(OBJ_PLTT_ID(index), boxMon);
+        CpuCopy32(&gPlttBufferFaded[OBJ_PLTT_ID(index)], &gPlttBufferUnfaded[OBJ_PLTT_ID(index)], PLTT_SIZEOF(16));
+        return index;
+    }
 }

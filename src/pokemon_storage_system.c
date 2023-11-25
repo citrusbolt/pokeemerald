@@ -40,6 +40,7 @@
 #include "constants/moves.h"
 #include "constants/rgb.h"
 #include "constants/songs.h"
+#include "util.h"
 
 /*
     NOTE: This file is large. Some general groups of functions have
@@ -574,6 +575,7 @@ EWRAM_DATA static bool8 sIsMonBeingMoved = 0;
 EWRAM_DATA static u8 sMovingMonOrigBoxId = 0;
 EWRAM_DATA static u8 sMovingMonOrigBoxPos = 0;
 EWRAM_DATA static bool8 sAutoActionOn = 0;
+EWRAM_DATA static struct BoxPokemon sCurrentBoxPokemon = {0};
 
 // Main tasks
 static void EnterPokeStorage(u8);
@@ -3977,6 +3979,7 @@ static void LoadDisplayMonGfx(u16 species, u32 pid)
         LZ77UnCompWram(sStorage->displayMonPalette, sStorage->displayMonPalBuffer);
         CpuCopy32(sStorage->tileBuffer, sStorage->displayMonTilePtr, MON_PIC_SIZE);
         LoadPalette(sStorage->displayMonPalBuffer, sStorage->displayMonPalOffset, PLTT_SIZE_4BPP);
+        UniquePalette(sStorage->displayMonPalOffset, &sCurrentBoxPokemon);
         sStorage->displayMonSprite->invisible = FALSE;
     }
     else
@@ -6863,6 +6866,7 @@ static void SetDisplayMonData(void *pokemon, u8 mode)
     {
         struct Pokemon *mon = (struct Pokemon *)pokemon;
 
+        CopyMon(&sCurrentBoxPokemon, &mon->box, sizeof(sCurrentBoxPokemon));
         sStorage->displayMonSpecies = GetMonData(mon, MON_DATA_SPECIES_OR_EGG);
         if (sStorage->displayMonSpecies != SPECIES_NONE)
         {
@@ -6886,6 +6890,7 @@ static void SetDisplayMonData(void *pokemon, u8 mode)
     {
         struct BoxPokemon *boxMon = (struct BoxPokemon *)pokemon;
 
+        CopyMon(&sCurrentBoxPokemon, &boxMon, sizeof(sCurrentBoxPokemon));
         sStorage->displayMonSpecies = GetBoxMonData(pokemon, MON_DATA_SPECIES_OR_EGG);
         if (sStorage->displayMonSpecies != SPECIES_NONE)
         {

@@ -2020,6 +2020,7 @@ static void Select_CreateMonSprite(void)
     u32 otId = GetMonData(mon, MON_DATA_OT_ID, NULL);
 
     sFactorySelectScreen->monPics[1].monSpriteId = CreateMonPicSprite_HandleDeoxys(species, otId, personality, TRUE, 88, 32, 15, TAG_NONE);
+    UniquePalette(OBJ_PLTT_ID(15), &mon->box);
     gSprites[sFactorySelectScreen->monPics[1].monSpriteId].centerToCornerVecX = 0;
     gSprites[sFactorySelectScreen->monPics[1].monSpriteId].centerToCornerVecY = 0;
 
@@ -2035,7 +2036,7 @@ static void Select_ReshowMonSprite(void)
 {
     struct Pokemon *mon;
     u16 species;
-    u32 personality, otId;
+    u32 personality, otId, i;;
 
     sFactorySelectScreen->monPics[1].bgSpriteId = CreateSprite(&sSpriteTemplate_Select_MonPicBgAnim, 120, 64, 1);
     StartSpriteAffineAnim(&gSprites[sFactorySelectScreen->monPics[1].bgSpriteId], 2);
@@ -2046,6 +2047,11 @@ static void Select_ReshowMonSprite(void)
     otId = GetMonData(mon, MON_DATA_OT_ID, NULL);
 
     sFactorySelectScreen->monPics[1].monSpriteId = CreateMonPicSprite_HandleDeoxys(species, otId, personality, TRUE, 88, 32, 15, TAG_NONE);
+    UniquePalette(OBJ_PLTT_ID(15), &mon->box);
+    for (i = OBJ_PLTT_ID(15); i < OBJ_PLTT_ID(15) + 0x10; i++)
+    {
+        gPlttBufferUnfaded[i] = gPlttBufferFaded[i];
+    }
     gSprites[sFactorySelectScreen->monPics[1].monSpriteId].centerToCornerVecX = 0;
     gSprites[sFactorySelectScreen->monPics[1].monSpriteId].centerToCornerVecY = 0;
 
@@ -2377,9 +2383,13 @@ static void CopySwappedMonData(void)
 
 static void Swap_Task_OpenSummaryScreen(u8 taskId)
 {
+    u32 i;
+
     switch (gTasks[taskId].tState)
     {
     case STATE_SUMMARY_FADE:
+        for (i = OBJ_PLTT_ID(15); i < OBJ_PLTT_ID(15) + 0x10; i++)
+            gPlttBufferUnfaded[i] = gPlttBufferFaded[i];
         BeginNormalPaletteFade(PALETTES_ALL, 0, 0, 16, RGB_BLACK);
         gTasks[taskId].tState = STATE_SUMMARY_CLEAN;
         break;
@@ -4076,7 +4086,7 @@ static void Swap_ShowSummaryMonSprite(void)
 {
     struct Pokemon *mon;
     u16 species;
-    u32 personality, otId;
+    u32 personality, otId, i;
 
     sFactorySwapScreen->monPic.bgSpriteId = CreateSprite(&sSpriteTemplate_Swap_MonPicBgAnim, 120, 64, 1);
     StartSpriteAffineAnim(&gSprites[sFactorySwapScreen->monPic.bgSpriteId], 2);
@@ -4091,6 +4101,9 @@ static void Swap_ShowSummaryMonSprite(void)
 #else
     sFactorySwapScreen->monPic.monSpriteId = CreateMonPicSprite_HandleDeoxys(species, personality, otId, TRUE, 88, 32, 15, TAG_NONE);
 #endif
+    UniquePalette(OBJ_PLTT_ID(15), &mon->box);
+    for (i = OBJ_PLTT_ID(15); i < OBJ_PLTT_ID(15) + 0x10; i++)
+        gPlttBufferUnfaded[i] = gPlttBufferFaded[i];
     gSprites[sFactorySwapScreen->monPic.monSpriteId].centerToCornerVecX = 0;
     gSprites[sFactorySwapScreen->monPic.monSpriteId].centerToCornerVecY = 0;
 
@@ -4307,6 +4320,7 @@ static void Swap_CreateMonSprite(void)
     otId = GetMonData(mon, MON_DATA_OT_ID, NULL);
 
     sFactorySwapScreen->monPic.monSpriteId = CreateMonPicSprite_HandleDeoxys(species, otId, personality, TRUE, 88, 32, 15, TAG_NONE);
+    UniquePalette(OBJ_PLTT_ID(15), &mon->box);
     gSprites[sFactorySwapScreen->monPic.monSpriteId].centerToCornerVecX = 0;
     gSprites[sFactorySwapScreen->monPic.monSpriteId].centerToCornerVecY = 0;
 

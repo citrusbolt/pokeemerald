@@ -392,3 +392,13 @@ static void DuplicateDeoxysTiles(void *pointer, s32 species)
     if (species == SPECIES_DEOXYS)
         CpuCopy32(pointer + MON_PIC_SIZE, pointer, MON_PIC_SIZE);
 }
+
+void LoadCompressedUniqueSpritePalette(const struct CompressedSpritePalette *src, struct BoxPokemon *boxMon)
+{
+    struct SpritePalette dest;
+
+    LZ77UnCompWram(src->data, gDecompressionBuffer);
+    dest.data = (void*) gDecompressionBuffer;
+    dest.tag = src->tag;
+    LoadUniqueSpritePalette(&dest, boxMon);
+}

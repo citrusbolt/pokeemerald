@@ -619,6 +619,11 @@ void BattleLoadOpponentMonSpriteGfx(struct Pokemon *mon, u8 battlerId)
         LoadPalette(gBattleStruct->castformPalette[gBattleMonForms[battlerId]], paletteOffset, PLTT_SIZE_4BPP);
     }
 
+    UniquePalette(paletteOffset, &mon->box);
+    CpuCopy32(&gPlttBufferFaded[paletteOffset], &gPlttBufferUnfaded[paletteOffset], PLTT_SIZEOF(16));
+    UniquePalette(BG_PLTT_ID(8) + BG_PLTT_ID(battlerId), &mon->box);
+    CpuCopy32(&gPlttBufferFaded[BG_PLTT_ID(8) + BG_PLTT_ID(battlerId)], &gPlttBufferUnfaded[BG_PLTT_ID(8) + BG_PLTT_ID(battlerId)], PLTT_SIZEOF(16));
+
     // transform's pink color
     if (gBattleSpritesDataPtr->battlerData[battlerId].transformSpecies != SPECIES_NONE)
     {
@@ -681,6 +686,11 @@ void BattleLoadPlayerMonSpriteGfx(struct Pokemon *mon, u8 battlerId)
         LZDecompressWram(lzPaletteData, gBattleStruct->castformPalette);
         LoadPalette(gBattleStruct->castformPalette[gBattleMonForms[battlerId]], paletteOffset, PLTT_SIZE_4BPP);
     }
+
+    UniquePalette(paletteOffset, &mon->box);
+    CpuCopy32(&gPlttBufferFaded[paletteOffset], &gPlttBufferUnfaded[paletteOffset], PLTT_SIZEOF(16));
+    UniquePalette(BG_PLTT_ID(8) + BG_PLTT_ID(battlerId), &mon->box);
+    CpuCopy32(&gPlttBufferFaded[BG_PLTT_ID(8) + BG_PLTT_ID(battlerId)], &gPlttBufferUnfaded[BG_PLTT_ID(8) + BG_PLTT_ID(battlerId)], PLTT_SIZEOF(16));
 
     // transform's pink color
     if (gBattleSpritesDataPtr->battlerData[battlerId].transformSpecies != SPECIES_NONE)
@@ -920,15 +930,20 @@ void HandleSpeciesGfxDataChange(u8 battlerAtk, u8 battlerDef, bool8 castform)
 {
     u16 paletteOffset;
     u32 personalityValue;
-    u32 otId;
+    u32 otId, ivs;
     u8 position;
     const u32 *lzPaletteData;
+    struct BoxPokemon boxMon;
+    u8 nickname[POKEMON_NAME_LENGTH + 1];
+    u8 otName[PLAYER_NAME_LENGTH + 1];
 
     if (castform)
     {
         StartSpriteAnim(&gSprites[gBattlerSpriteIds[battlerAtk]], gBattleSpritesDataPtr->animationData->animArg);
         paletteOffset = OBJ_PLTT_ID(battlerAtk);
-        LoadPalette(gBattleStruct->castformPalette[gBattleSpritesDataPtr->animationData->animArg], paletteOffset, PLTT_SIZE_4BPP);
+        LoadPalette(gBattleStruct->castformPalette[gBattleSpritesDataPtr->animationData->animArg], paletteOffset, PLTT_SIZEOF(16));
+        UniquePalette(paletteOffset, &gPlayerParty[gBattlerPartyIndexes[battlerAtk]].box);
+        CpuCopy32(&gPlttBufferFaded[paletteOffset], &gPlttBufferUnfaded[paletteOffset], PLTT_SIZEOF(16));
         gBattleMonForms[battlerAtk] = gBattleSpritesDataPtr->animationData->animArg;
         if (gBattleSpritesDataPtr->battlerData[battlerAtk].transformSpecies != SPECIES_NONE)
         {
@@ -1000,6 +1015,39 @@ void HandleSpeciesGfxDataChange(u8 battlerAtk, u8 battlerDef, bool8 castform)
             LZDecompressWram(lzPaletteData, gBattleStruct->castformPalette);
             LoadPalette(gBattleStruct->castformPalette[gBattleMonForms[battlerDef]], paletteOffset, PLTT_SIZE_4BPP);
         }
+
+        if (IsContest())
+        {
+            // If you are going to use SOURCE_IVS, you'll need to load those stats somewhere during Contests
+            // For SOURCE_NICKNAME_OT, OT Name should be loaded somewhere during Contests
+            CreateBoxMon(&boxMon, targetSpecies, 5, USE_RANDOM_IVS, TRUE, personalityValue, OT_ID_PRESET, otId);
+            SetBoxMonData(&boxMon, MON_DATA_NICKNAME, gContestMons[gContestResources->moveAnim->contestant].nickname);
+            SetBoxMonData(&boxMon, MON_DATA_OT_NAME, gContestMons[gContestResources->moveAnim->contestant].trainerName);
+        }
+        else
+        {
+            CreateBoxMon(&boxMon, targetSpecies, 5, USE_RANDOM_IVS, TRUE, personalityValue, OT_ID_PRESET, otId);
+
+            if (GetBattlerSide(battlerAtk) == B_SIDE_PLAYER)
+            {
+                ivs = GetMonData(&gPlayerParty[gBattlerPartyIndexes[battlerAtk]], MON_DATA_IVS);
+                GetMonData(&gPlayerParty[gBattlerPartyIndexes[battlerAtk]], MON_DATA_NICKNAME, nickname);
+                GetMonData(&gPlayerParty[gBattlerPartyIndexes[battlerAtk]], MON_DATA_OT_NAME, otName);
+            }
+            else if (GetBattlerSide(battlerAtk) == B_SIDE_OPPONENT)
+            {
+                ivs = GetMonData(&gEnemyParty[gBattlerPartyIndexes[battlerAtk]], MON_DATA_IVS);
+                GetMonData(&gEnemyParty[gBattlerPartyIndexes[battlerAtk]], MON_DATA_NICKNAME, nickname);
+                GetMonData(&gEnemyParty[gBattlerPartyIndexes[battlerAtk]], MON_DATA_OT_NAME, otName);
+            }
+
+            SetBoxMonData(&boxMon, MON_DATA_IVS, &ivs);
+            SetBoxMonData(&boxMon, MON_DATA_NICKNAME, nickname);
+            SetBoxMonData(&boxMon, MON_DATA_OT_NAME, otName);
+        }
+
+        UniquePalette(paletteOffset, &boxMon);
+        CpuCopy32(&gPlttBufferFaded[paletteOffset], &gPlttBufferUnfaded[paletteOffset], PLTT_SIZEOF(16));
 
         BlendPalette(paletteOffset, 16, 6, RGB_WHITE);
         CpuCopy32(&gPlttBufferFaded[paletteOffset], &gPlttBufferUnfaded[paletteOffset], PLTT_SIZEOF(16));

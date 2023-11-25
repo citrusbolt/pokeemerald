@@ -2,6 +2,7 @@
 #define GUARD_DECOMPRESS_H
 
 #include "sprite.h"
+#include "pokemon.h"
 
 extern u8 ALIGNED(4) gDecompressionBuffer[0x4000];
 
@@ -29,5 +30,7 @@ void LoadSpecialPokePic_2(const struct CompressedSpriteSheet *src, void *dest, s
 void LoadSpecialPokePic_DontHandleDeoxys(const struct CompressedSpriteSheet *src, void *dest, s32 species, u32 personality, bool8 isFrontPic);
 
 u32 GetDecompressedDataSize(const u32 *ptr);
+
+void LoadCompressedUniqueSpritePalette(const struct CompressedSpritePalette *src, struct BoxPokemon *boxMon);
 
 #endif // GUARD_DECOMPRESS_H

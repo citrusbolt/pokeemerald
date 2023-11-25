@@ -3120,6 +3120,8 @@ static u8 CreateJudgeSpeechBubbleSprite(void)
 static u8 CreateContestantSprite(u16 species, u32 otId, u32 personality, u32 index)
 {
     u8 spriteId;
+    struct BoxPokemon boxMon;
+
     species = SanitizeSpecies(species);
 
     if (index == gContestPlayerMonIndex)
@@ -3128,6 +3130,15 @@ static u8 CreateContestantSprite(u16 species, u32 otId, u32 personality, u32 ind
         HandleLoadSpecialPokePic_DontHandleDeoxys(&gMonBackPicTable[species], gMonSpritesGfxPtr->sprites.ptr[B_POSITION_PLAYER_LEFT], species, personality);
 
     LoadCompressedPalette(GetMonSpritePalFromSpeciesAndPersonality(species, otId, personality), OBJ_PLTT_ID(2), PLTT_SIZE_4BPP);
+
+    // If you are going to use SOURCE_IVS, you'll need to load those stats somewhere during Contests
+    // For SOURCE_NICKNAME_OT, OT Name should be loaded somewhere during Contests
+    CreateBoxMon(&boxMon, species, 5, USE_RANDOM_IVS, TRUE, personality, OT_ID_PRESET, otId);
+    SetBoxMonData(&boxMon, MON_DATA_NICKNAME, gContestMons[eContest.currentContestant].nickname);
+    SetBoxMonData(&boxMon, MON_DATA_OT_NAME, gContestMons[eContest.currentContestant].trainerName);
+    UniquePalette(OBJ_PLTT_ID(2), &boxMon);
+    CpuCopy32(&gPlttBufferFaded[OBJ_PLTT_ID(2)], &gPlttBufferUnfaded[OBJ_PLTT_ID(2)], PLTT_SIZE_4BPP);
+
     SetMultiuseSpriteTemplateToPokemon(species, B_POSITION_PLAYER_LEFT);
 
     spriteId = CreateSprite(&gMultiuseSpriteTemplate, 0x70, GetBattlerSpriteFinal_Y(2, species, FALSE), 30);
