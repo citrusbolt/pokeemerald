@@ -510,32 +510,35 @@ static void _TriggerPendingDaycareEgg(struct DayCare *daycare)
 {
     s32 parent;
     s32 natureTries = 0;
+    u32 personality;
+    struct PIDParameters parameters;
 
-    SeedRng2(gMain.vblankCounter2);
+    parameters.species = SPECIES_NONE;
+    parameters.shinyRerolls = TRUE;
+    parameters.forceNature = FALSE;
+    parameters.nature = 0;
+    parameters.forceGender = FALSE;
+    parameters.gender = 0;
+    parameters.forceUnownLetter = FALSE;
+    parameters.unownLetter = 0;
+
     parent = GetParentToInheritNature(daycare);
 
     // don't inherit nature
     if (parent < 0)
     {
-        daycare->offspringPersonality = (Random2() << 16) | ((Random() % 0xfffe) + 1);
+        personality = GeneratePIDMaster(parameters);
     }
     // inherit nature
     else
     {
-        u8 wantedNature = GetNatureFromPersonality(GetBoxMonData(&daycare->mons[parent].mon, MON_DATA_PERSONALITY, NULL));
-        u32 personality;
+        parameters.forceNature = TRUE;
+        parameters.nature = GetNatureFromPersonality(GetBoxMonData(&daycare->mons[parent].mon, MON_DATA_PERSONALITY, NULL));
 
-        do
-        {
-            personality = (Random2() << 16) | (Random());
-            if (wantedNature == GetNatureFromPersonality(personality) && personality != 0)
-                break; // found a personality with the same nature
-
-            natureTries++;
-        } while (natureTries <= 2400);
-
-        daycare->offspringPersonality = personality;
+        personality = GeneratePIDMaster(parameters);
     }
+
+    daycare->offspringPersonality = personality;
 
     FlagSet(FLAG_PENDING_DAYCARE_EGG);
 }

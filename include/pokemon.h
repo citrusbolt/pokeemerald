@@ -591,6 +591,18 @@ struct Fusion
 
 extern const struct Fusion *const gFusionTablePointers[NUM_SPECIES];
 
+struct PIDParameters
+{
+    u16 species;
+    bool8 shinyRerolls;
+    bool8 forceNature;
+    u8 nature;
+    bool8 forceGender;
+    u8 gender;
+    bool8 forceUnownLetter;
+    u8 unownLetter;
+};
+
 #define NUM_UNOWN_FORMS 28
 
 #define GET_UNOWN_LETTER(personality) ((   \
@@ -627,6 +639,7 @@ void ZeroBoxMonData(struct BoxPokemon *boxMon);
 void ZeroMonData(struct Pokemon *mon);
 void ZeroPlayerPartyMons(void);
 void ZeroEnemyPartyMons(void);
+u32 GeneratePIDMaster(struct PIDParameters parameters);
 void CreateMon(struct Pokemon *mon, u16 species, u8 level, u8 fixedIV, u8 hasFixedPersonality, u32 fixedPersonality, u8 otIdType, u32 fixedOtId);
 void CreateBoxMon(struct BoxPokemon *boxMon, u16 species, u8 level, u8 fixedIV, u8 hasFixedPersonality, u32 fixedPersonality, u8 otIdType, u32 fixedOtId);
 void CreateMonWithNature(struct Pokemon *mon, u16 species, u8 level, u8 fixedIV, u8 nature);
